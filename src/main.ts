@@ -79,7 +79,7 @@ export default class PaperClipPlugin extends Plugin {
 			const startLine = Math.min(selection.anchor.line, selection.head.line);
 			const endLine = Math.max(selection.anchor.line, selection.head.line);
 
-			
+
 			const editMode = (
 				ctx as unknown as { editMode?: { getFoldInfo?: () => { folds: FoldRange[] } } }
 			).editMode;
@@ -95,7 +95,6 @@ export default class PaperClipPlugin extends Plugin {
 			this.copiedFoldInfo = { startLine, folds: copiedFolds };
 		});
 	}
-
 
 
 	private registerPasteListener() {
