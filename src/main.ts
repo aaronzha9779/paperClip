@@ -3,7 +3,7 @@ import { foldedRanges, foldEffect, unfoldEffect, foldable } from '@codemirror/la
 //This plugin works with CM6 directly since folding is not exposed through Editor API
 //keymap + Prec for keybinding with a specific priority
 import { keymap, EditorView } from '@codemirror/view';
-import { Prec } from '@codemirror/state';
+import { Prec, StateEffect } from '@codemirror/state';
 
 interface FoldRange {
 	from: number;
@@ -29,6 +29,11 @@ export default class PaperClipPlugin extends Plugin {
 	// selection at a time.
 	private copiedFoldInfo: CopiedFoldInfo | null = null;
 
+
+	private getCM(editor: Editor | null | undefined): EditorView | undefined {
+		return (editor as unknown as { cm?: EditorView } | null | undefined)?.cm;
+	}
+
 	async onload() {
 		this.registerCopyListener();
 		this.registerPasteListener();
@@ -51,7 +56,6 @@ export default class PaperClipPlugin extends Plugin {
 
 	}
 
-	onunload() {}
 
 	// Feature 1: Paste-preserves-fold-state
 
@@ -75,13 +79,18 @@ export default class PaperClipPlugin extends Plugin {
 			const startLine = Math.min(selection.anchor.line, selection.head.line);
 			const endLine = Math.max(selection.anchor.line, selection.head.line);
 
-			// @ts-ignore
-			const folds: FoldRange[] = ctx.editMode?.getFoldInfo()?.folds ?? [];
+			
+			const editMode = (
+				ctx as unknown as { editMode?: { getFoldInfo?: () => { folds: FoldRange[] } } }
+			).editMode;
+			const folds: FoldRange[] = editMode?.getFoldInfo?.()?.folds ?? [];
 
 			// Only keep folds fully contained within the copied selection. Overlaps are prevented; Only text selcted within range are used
 			const copiedFolds = folds.filter(
 				(fold) => fold.from >= startLine && fold.to <= endLine,
 			);
+			//stores copied Folds for paste listener to use after
+			this.copiedFoldInfo = { startLine, folds: copiedFolds };
 			//stores copied Folds for paste listener to use after
 			this.copiedFoldInfo = { startLine, folds: copiedFolds };
 		});
@@ -99,8 +108,7 @@ export default class PaperClipPlugin extends Plugin {
 				// but `.cm` is the real property at runtime. We need direct CM6
 				// access because fold dispatch isn't available through the Obsidian
 				// wrapper API.
-				// @ts-ignore
-				const cm = editor.cm;
+				const cm = this.getCM(editor);
 				if (!cm) return;
 
 				//after paste, curosr selection shows where paste landed, acting as a reference pointfor shifting all old fold positions to new positions
@@ -117,8 +125,7 @@ export default class PaperClipPlugin extends Plugin {
 					// amount below, so a fold that was "line 10 to 15" in the original
 					// becomes "line 50 to 55" at the new paste location.
 					const lineOffset = pasteStartLine - copiedInfo.startLine;
-					const foldEffects = [];
-
+					const foldEffects: StateEffect<{ from: number; to: number }>[] = [];
 
 					// Shifting by lineOffset can push a line number negative (paste
 					// near the top of the file) or past the last line (paste near
@@ -178,8 +185,7 @@ export default class PaperClipPlugin extends Plugin {
 			id: 'toggle-fold-in-selection',
 			name: 'Toggle fold for everything in selection',
 			editorCallback: (editor: Editor) => {
-				// @ts-ignore
-				const cm = editor.cm;
+				const cm = this.getCM(editor);
 				if (!cm) return;
 
 				const selection = editor.listSelections()[0];
@@ -239,8 +245,7 @@ export default class PaperClipPlugin extends Plugin {
 			if (found) return;
 			const view = leaf.view;
 			if (!(view instanceof MarkdownView)) return;
-			// @ts-ignore - `.cm` is CM6's EditorView, not part of the public Editor type
-			if (view.editor?.cm === cmView) {
+			if (this.getCM(view.editor) === cmView) {
 				found = view.editor;
 			}
 		});
