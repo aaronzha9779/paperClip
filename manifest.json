@@ -2,10 +2,9 @@
 	"id": "paperClip",
 	"name": "paperClip",
 	"version": "1.0.0",
-	"minAppVersion": "1.0.0",
+	"minAppVersion": "1.4.16",
 	"description": "Manages and Preserves fold states efficiently.",
 	"author": "AZ",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"authorUrl": "https://github.com/aaronzha9779",
 	"isDesktopOnly": false
 }
