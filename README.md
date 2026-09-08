@@ -1,4 +1,4 @@
-# PaperClip
+# paperWeight
 
 Keeps your folded headings completely folded, even after copy/paste or indenting.
 
@@ -27,16 +27,16 @@ in the document.
 
 ### From Obsidian 
 1. Open **Settings → Community plugins**
-2. Click **Browse** and search for "PaperClip"
+2. Click **Browse** and search for "paperWeight"
 3. Click **Install**, then **Enable**
 
 ### Manual installation
 1. Download `main.js`, `manifest.json`, and `styles.css` (if present) from the
    [latest release](../../releases)
-2. Create a folder `PaperClip` inside your vault's
+2. Create a folder `paperWeight` inside your vault's
    `.obsidian/plugins/` directory
 3. Copy the downloaded files into that folder
-4. Reload Obsidian and enable **PaperClip** under
+4. Reload Obsidian and enable **PaperWeight** under
    **Settings → Community plugins**
 
 ## Usage
